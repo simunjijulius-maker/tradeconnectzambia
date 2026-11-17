@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<title>TradeConnect Zambia</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--gold:#f4b942;--bg:#f3f6fa;--ink:#182536;--muted:#64748b;--line:#e2e8f0;--white:#fff;--green:#16865b;--red:#bd3d3d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:11px 16px;background:var(--blue);color:white;font-weight:700}button.secondary{background:#e8f0f8;color:var(--navy)}button.danger{background:#b93b3b}button:disabled{opacity:.5;cursor:not-allowed}.top{background:var(--navy);color:white;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:5}.brand{font-size:19px;font-weight:850;letter-spacing:-.4px}.brand span{color:var(--gold)}.top small{display:block;color:#cbd5e1;font-size:11px;font-weight:500}.wrap{max-width:1120px;margin:auto;padding:20px}.hero{background:linear-gradient(120deg,#102b46,#1769aa);color:white;border-radius:18px;padding:28px;margin:8px 0 20px}.hero h1{font-size:clamp(25px,5vw,38px);line-height:1.12;margin:0 0 10px}.hero p{color:#e1edf8;max-width:650px;margin:0 0 18px}.hero .tag{color:#ffd36e;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:1px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:14px}.panel,.card{background:white;border:1px solid var(--line);border-radius:15px;padding:17px;box-shadow:0 4px 16px #152c4308}.panel h2,.panel h3{margin:0 0 13px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px 0 12px}.section-head h2{margin:0;font-size:21px}.muted{color:var(--muted)}.small{font-size:12px}.field{margin:0 0 12px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:5px}.field input,.field select,.field textarea,.searchbar input,.searchbar select{width:100%;border:1px solid #d4deea;border-radius:9px;padding:11px;background:white;color:var(--ink);outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #1769aa18}.field textarea{min-height:85px;resize:vertical}.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}.searchbar{display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:9px;margin:12px 0 16px}.tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;padding:8px 0 16px}.tabs button{white-space:normal;min-height:58px;border:1px solid #d8e3ef;border-radius:14px;box-shadow:0 3px 10px #102b4610}.tabs button.active{background:#1769aa;color:white;border-color:#1769aa}.tabs button.active{background:var(--gold);color:#382800}.hidden{display:none!important}.owner-locked{display:none!important}.pill{display:inline-block;background:#eaf2fa;color:#17517f;border-radius:99px;padding:4px 9px;font-size:11px;font-weight:800}.status{display:inline-block;padding:4px 8px;border-radius:8px;font-size:11px;font-weight:800;background:#fff3d7;color:#805400}.status.accepted{background:#e4f5ed;color:#126746}.status.completed{background:#e8edff;color:#344b9a}.status.rejected,.status.cancelled{background:#fdeaea;color:#9c2c2c}.card h3{margin:8px 0 3px}.card p{margin:6px 0;color:var(--muted)}.card .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.card .actions button{font-size:12px;padding:8px 11px}.metric{font-size:27px;font-weight:850;color:var(--navy)}.notice{padding:11px 13px;border-radius:10px;background:#eaf2fa;color:#214e75;margin:10px 0}.error{background:#fff0f0;color:#9e2525}.success{background:#e8f7ef;color:#126746}.empty{text-align:center;padding:30px;color:var(--muted)}footer{text-align:center;color:#718096;padding:25px 10px;font-size:12px}.modal{position:fixed;inset:0;background:#0b1b2dcc;display:grid;place-items:center;padding:15px;z-index:10}.modalbox{width:min(520px,100%);max-height:90vh;overflow:auto;background:white;border-radius:16px;padding:20px}.modalhead{display:flex;justify-content:space-between;align-items:center}.modalhead h2{margin:0}.close{background:#edf2f7;color:#26384a;padding:7px 11px}.stars{color:#c18a13;font-weight:900}@media(max-width:700px){.wrap{padding:13px}.searchbar{grid-template-columns:1fr 1fr}.searchbar input{grid-column:1/-1}.top{padding:12px}.hero{padding:22px}.brand{font-size:17px}}
+</style>
+</head>
+<body>
+<header class="top">
+ <div class="brand">TradeConnect <span>Zambia</span><small>Connecting Skills to Opportunities</small></div>
+ <div id="authArea"><button id="authOpen" class="secondary">Sign in</button></div>
+</header>
+<main class="wrap">
+ <section class="hero">
+  <div class="tag">Skills • Services • Opportunity</div>
+  <h1>Find trusted skills.<br>Get work done.</h1>
+  <p>Connect with skilled people, discover local services and turn practical talent into opportunities across Zambia.</p>
+  <button id="heroBrowse">Explore skilled workers</button>
+ </section>
+ <div id="message" class="notice hidden" role="status"></div>
+ <section id="authPanel" class="panel hidden">
+  <div class="section-head"><h2 id="authTitle">Create an account</h2><button class="secondary" id="authClose">Close</button></div>
+  <div class="tabs"><button class="active" id="signupTab">Register</button><button class="secondary" id="loginTab">Sign in</button></div>
+  <form id="authForm">
+   <div id="signupFields">
+    <div class="field"><label>Full name</label><input id="fullName" required maxlength="90" autocomplete="name"></div>
+    <div class="row">
+     <div class="field"><label>Phone number</label><input id="phone" required maxlength="30" placeholder="+260..." autocomplete="tel"></div>
+     <div class="field"><label>Town / District</label><input id="location" required maxlength="90" placeholder="e.g. Kalabo"></div>
+    </div>
+    <div class="field"><label>Account type</label><select id="role"><option value="customer">Customer — I need a service</option><option value="worker">Skilled worker — I offer services</option></select></div>
+    <div id="customerInterestFields" class="field">
+     <label>Skills you are interested in (select one or more)</label>
+     <p class="muted small">Your community feed will prioritise these skills. You can still search for every other skill.</p>
+     <div id="signupInterestChoices" class="grid"></div>
+    </div>
+    <div id="workerFields" class="hidden">
+     <div class="field"><label>Skill / Profession</label><select id="skill"></select></div>
+     <div class="field"><label>Experience</label><input id="experience" maxlength="100" placeholder="e.g. 2 years / trainee"></div>
+     <div class="field"><label>About your services</label><textarea id="description" maxlength="700" placeholder="Describe what you can do"></textarea></div>
+    </div>
+   </div>
+   <div class="field"><label>Email address</label><input id="email" type="email" required autocomplete="email"></div>
+   <div class="field"><label>Password</label><input id="password" type="password" required minlength="6" autocomplete="current-password"></div>
+   <button id="authSubmit" type="submit">Create account</button>
+   <div id="forgotWrap" class="small" style="margin-top:12px"><button type="button" class="secondary" id="forgotPassword">Forgot password?</button></div>
+  </form>
+  <p class="notice"><strong>30-day free trial:</strong> Every new customer and skilled-worker account starts with 30 days of full feature access. After the trial, customer features remain free; workers can continue premium posting and reply features with K10 for 62 days.</p><p class="muted small">Use an email address you can access. If email confirmation is enabled, confirm your email before signing in.</p>
+ </section>
+ <section id="recoveryPage" class="panel hidden" style="max-width:520px;margin:24px auto">
+  <h2>Choose a new password</h2>
+  <p class="muted small">Your email link has been verified. Enter and save your new password below.</p>
+  <div class="field"><label for="newPassword">New password</label><input id="newPassword" type="password" minlength="6" autocomplete="new-password" placeholder="At least 6 characters"></div>
+  <div class="field"><label for="confirmNewPassword">Confirm new password</label><input id="confirmNewPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Enter the same password again"></div>
+  <button type="button" id="saveNewPassword">Save new password</button>
+ </section>
+ <section id="appArea" class="hidden">
+  <div class="section-head"><div><h2 id="welcome">Your workspace</h2><div class="muted small" id="userRole"></div></div><button class="secondary" id="logout">Sign out</button></div><div id="trialNotice" class="notice small hidden" style="margin-top:-8px"></div>
+  <nav class="tabs" id="navTabs">
+   <button class="active" data-tab="directory" data-roles="customer,admin">Find workers</button>
+   <button class="secondary" data-tab="updates">Community updates</button>
+   <button class="secondary" data-tab="mybookings">My bookings</button>
+   <button class="secondary" data-tab="customerjobs" data-roles="customer,worker,admin">Customer job requests</button>
+   <button class="secondary" data-tab="jobboard">Job opportunities</button>
+   <button class="secondary" data-tab="juliusai">Julius AI Tec</button>
+   <button class="secondary" data-tab="profile">My profile</button>
+   <button class="secondary" data-tab="subscription" data-roles="worker,admin">Subscription & payments</button>
+   <button class="secondary" data-tab="workerposts" data-roles="worker,admin">My updates</button>
+   <button class="secondary" data-tab="referrals" data-roles="customer,worker,admin">Invite & earn</button>
+   <button class="secondary hidden owner-locked" id="adminTab" data-tab="admin">Admin</button>
+  </nav>
+  <section id="directory" class="tabpane">
+   <div class="section-head"><h2>Skilled professionals</h2><span class="muted small" id="workerCount"></span></div>
+   <div class="searchbar">
+    <input id="searchText" placeholder="Search skill, name or service">
+    <select id="filterSkill"><option value="">All professions</option></select>
+    <input id="filterLocation" placeholder="Town / District">
+    <button id="searchBtn">Search</button>
+   </div>
+   <div class="grid" id="workerList"></div>
+  </section>
+  <section id="updates" class="tabpane hidden">
+   <div class="section-head"><div><h2>Community updates</h2><p class="muted small">See the latest work and updates shared by skilled professionals.</p></div><button class="secondary" id="refreshFeed">Refresh</button></div>
+   <div id="communityFeed" class="grid"></div>
+  </section>
+  <section id="mybookings" class="tabpane hidden">
+   <div class="section-head"><h2>My service requests</h2><button class="secondary" id="refreshBookings">Refresh</button></div>
+   <div id="bookingList" class="grid"></div>
+  </section>
+  <section id="profile" class="tabpane hidden">
+   <div class="panel" style="max-width:650px">
+    <h2>My profile</h2>
+    <form id="profileForm">
+     <div class="field"><label>Profile picture (free)</label><div class="row" style="align-items:center"><img id="profileAvatarPreview" alt="Profile picture" src="" style="width:120px;height:120px;border-radius:14px;object-fit:contain;background:#e8f0f8;border:1px solid #d4deea"><input id="profileAvatarFile" type="file" accept="image/*"></div></div><div class="field"><label>Full name</label><input id="pName" required maxlength="90"></div><div class="field"><label>Bio / About me (free)</label><textarea id="pBio" maxlength="700" placeholder="Tell customers or workers a little about yourself..."></textarea></div>
+     <div class="row"><div class="field"><label>Phone</label><input id="pPhone" maxlength="30"></div><div class="field"><label>Town / District</label><input id="pLocation" maxlength="90"></div></div>
+     <div id="profileInterestPanel" class="field hidden"><label>My interested skills</label><p class="small muted">Only selected skills are prioritised in your community feed. Search still includes all skills.</p><div id="profileInterestChoices" class="grid"></div><button type="button" class="secondary" id="saveInterests" style="margin-top:10px">Save interests</button></div>
+     <div id="pWorkerFields" class="hidden">
+      <div class="field"><label>Profession</label><select id="pSkill"></select></div>
+      <div class="field"><label>Experience</label><input id="pExperience" maxlength="100"></div>
+      <div class="field"><label>Service description</label><textarea id="pDescription" maxlength="700"></textarea></div>
+     </div>
+     <button type="submit">Save profile</button>
+    </form>
+   </div>
+  </section>
+  <section id="referrals" class="tabpane hidden"><div class="panel" style="max-width:720px"><h2>Invite people to TradeConnect</h2><p>Invite 10 genuine people to join TradeConnect Zambia and earn one month of free worker subscription when all 10 have registered and verified their email.</p><div class="notice"><strong>Benefits of inviting 10 people</strong><ul><li>Reach 10 verified registrations through your personal invitation link.</li><li>Receive one free month of worker subscription.</li><li>Use the free subscription to publish worker updates and reply to customer messages.</li><li>Only genuine accounts that register and verify their email count.</li></ul><p class="small"><strong>Reward:</strong> Invite 10 genuine people who complete registration and verify their email to earn one month of free worker subscription. The reward is for worker accounts, is granted once per account, and is not cash. Link clicks and unverified accounts do not count.</p></div><div class="field"><label>Your personal invitation link</label><input id="referralLink" readonly></div><div class="row"><button type="button" id="copyReferral">Copy link</button><button type="button" class="secondary" id="shareReferral">Share link</button></div><div class="section-head"><h3>Verified people invited</h3></div><div class="metric" id="referralCount">0</div><div class="small muted">Registered users who confirmed their email</div><p id="referralRewardStatus" class="notice" aria-live="polite">Invite 10 genuine people to unlock the reward.</p></div></section>
+  <section id="subscription" class="tabpane hidden"><div class="panel" style="max-width:720px"><section id="subscriptionPanel" class="panel" style="margin:14px 0;border:2px solid #f4b942">
+     <h3>Worker posting subscription</h3>
+     <p>Every new account receives a <strong>30-day free trial</strong> with all worker features unlocked. After the trial, continue publishing photos, videos and written updates and replying to customer messages for <strong>K10 per 62 days</strong>. Customer accounts remain free.</p>
+     <div class="notice"><strong>Airtel payment details</strong><br>Agent Code: <strong>20283741</strong><br>Agent Name: <strong>Julius Simunji</strong><br>After paying K10, upload your transaction screenshot and enter the transaction reference below. Your subscription starts only after admin confirmation.</div>
+     <div id="subscriptionStatus" class="notice">Checking subscription status…</div>
+     <form id="paymentForm">
+      <div class="field"><label>Transaction reference / ID</label><input id="paymentReference" required maxlength="120" placeholder="Enter the Airtel transaction reference"></div>
+      <div class="field"><label>Upload payment screenshot (JPG, PNG or PDF; max 10 MB)</label><input id="paymentProof" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required></div>
+      <button id="submitPayment" type="submit">Submit payment for confirmation</button>
+     </form>
+     <div class="section-head"><h3>My payment submissions</h3><button type="button" class="secondary" id="refreshPayments">Refresh</button></div>
+     <div id="myPayments"></div>
+    </section></div></section>
+  <section id="workerposts" class="tabpane hidden"><div class="panel" style="max-width:720px"><div id="workerPostTools">
+    <h3>Share an update, photo or video</h3>
+    <form id="postForm">
+     <div class="field"><label>Caption / update</label><textarea id="postCaption" maxlength="1500" placeholder="Share your skills, completed work or an update..."></textarea></div>
+     <div class="field"><label>Add a photo or video (optional)</label><input id="postMedia" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"></div>
+     <p class="muted small">Maximum upload size: 50 MB. Only upload content you have permission to share.</p>
+     <button id="publishPost" type="submit">Publish post</button>
+    </form>
+    <div class="section-head"><h3>My posts</h3><button class="secondary" id="refreshPosts" type="button">Refresh</button></div>
+    <div id="myPosts" class="grid"></div>
+    </div></div></section>
+  <section id="customerjobs" class="tabpane hidden">
+   <div class="section-head"><div><h2>Customer job requests</h2><p class="muted small">Customers can post real service needs. Skilled workers can discover requests matching their skills.</p></div><button class="secondary" id="refreshCustomerJobs">Refresh</button></div>
+   <div id="customerJobCreate" class="panel" style="margin-bottom:14px">
+    <h3>Post a job / service request</h3>
+    <form id="customerJobForm"><div class="field"><label>Job title</label><input id="cjTitle" maxlength="140" required placeholder="e.g. Need an electrician for house wiring"></div>
+     <div class="row"><div class="field"><label>Skill required</label><select id="cjSkill" required></select></div><div class="field"><label>Location</label><input id="cjLocation" maxlength="140" required placeholder="Town / District"></div></div>
+     <div class="row"><div class="field"><label>Type of work</label><select id="cjType"><option>One-time</option><option>Ongoing</option><option>Full-time</option><option>Part-time</option></select></div></div>
+     <div class="field"><label>Describe the work and when you need it</label><textarea id="cjDescription" maxlength="1800" required></textarea></div><div class="field"><label><input id="cjSharePhone" type="checkbox" style="width:auto"> Share my phone number with signed-in skilled workers for this request</label></div><button type="submit">Publish job request</button>
+    </form>
+   </div>
+   <div class="searchbar"><input id="customerJobSearch" placeholder="Search job requests"><select id="customerJobSkill"></select><input id="customerJobLocation" placeholder="Town / District"><button id="customerJobSearchBtn">Search</button></div>
+   <div id="customerJobList" class="grid"></div>
+  </section>
+  <section id="jobboard" class="tabpane hidden">
+   <div class="section-head"><div><h2>External job opportunities</h2><p class="muted small">Search vacancies published outside TradeConnect. Always verify details on the original organisation's website.</p></div></div>
+   <div class="panel"><div class="field"><label>Job title or skill</label><input id="vacancyTerm" placeholder="e.g. IT Officer, electrician, driver"></div>
+    <div class="row"><div class="field"><label>Location</label><input id="vacancyLocation" value="Zambia" placeholder="Zambia / Lusaka / anywhere"></div><div class="field"><label>Source</label><select id="vacancySource"><option value="all">All sources</option><option value="gov">Government / public sector</option><option value="ngo">NGOs and organisations</option><option value="private">Private sector</option></select></div></div>
+    <button id="vacancySearch">Refresh live sources</button><p id="vacancyUpdated" class="small muted">Sources update when you refresh this section.</p>
+    <p class="muted small">Refresh or search to load the latest links to external vacancy portals. Listings and application forms are hosted by the organisations; TradeConnect does not yet have a live vacancy-feed API.</p>
+   </div><div id="vacancyLinks" class="grid" style="margin-top:14px"></div>
+  </section>
+  <section id="juliusai" class="tabpane hidden">
+   <div class="panel"><span class="pill">JULIUS AI TEC</span><h2 style="margin-top:10px">Career & document assistant</h2>
+    <p class="muted">Prepare editable CV and application-letter drafts from the information you provide. Check every detail before sending.</p>
+    <div class="notice">Julius AI Tec can prepare a CV or application letter from the details you provide. AI requests are sent securely through the server. Do not include passwords, ID numbers or other unnecessary private information. Always check the finished document before using it.</div>
+    <form id="cvForm"><div class="row"><div class="field"><label>Document</label><select id="docType"><option value="cv">CV / Resume</option><option value="application_letter">Application letter</option></select></div><div class="field"><label>Output preference</label><select id="docFormat"><option value="text">Editable text</option><option value="image">Image-style document</option></select></div></div>
+     <div class="field"><label>Full name</label><input id="cvName" required></div><div class="row"><div class="field"><label>Phone</label><input id="cvPhone"></div><div class="field"><label>Email</label><input id="cvEmail" type="email"></div></div>
+     <div class="field"><label>Town / District</label><input id="cvLocation"></div><div class="field"><label>Education and qualifications</label><textarea id="cvEducation" placeholder="Schools, certificates, courses and dates"></textarea></div>
+     <div class="field"><label>Skills</label><textarea id="cvSkills" placeholder="List your practical and professional skills"></textarea></div><div class="field"><label>Upload an existing CV from your phone (PDF, DOC or DOCX)</label><input id="cvUpload" type="file" accept=".pdf,.doc,.docx,.txt"><p class="small muted">The file is saved to your account. You can still create or edit a new CV below.</p></div><div class="field"><label>Work experience / attachments / projects</label><textarea id="cvExperience" placeholder="Employers, duties, dates, training or projects"></textarea></div>
+     <div class="field"><label>Job title and organisation (for application letters)</label><input id="cvTarget" placeholder="e.g. IT Assistant at Kalabo Trades Training Institute"></div>
+     <div class="field"><label>Additional information / career objective</label><textarea id="cvExtra"></textarea></div>
+     <div class="row"><button type="button" id="generateWithAI">Generate with Julius AI Tec</button><button type="button" class="secondary" id="makeDocDraft">Prepare basic draft</button><button type="button" class="secondary" id="saveDoc">Save to my account</button></div><p id="aiStatus" class="small muted" aria-live="polite">AI generation uses your site’s included Netlify credits and stops when the free monthly limit is reached.</p>
+    </form>
+    <div class="field" style="margin-top:16px"><label>Editable document preview</label><textarea id="docPreview" rows="16" placeholder="Your draft will appear here. You can edit it before saving or exporting."></textarea></div>
+    <div class="row"><button type="button" id="downloadDoc">Save as text file</button><button type="button" class="secondary" id="printDoc">Print / Save as PDF</button><button type="button" class="secondary" id="imageDoc">Save as image</button></div>
+    <div class="section-head"><h3>My saved documents</h3><button type="button" class="secondary" id="refreshDocs">Refresh</button></div><div id="savedDocs" class="grid"></div>
+   </div>
+  </section>
+  <section id="admin" class="tabpane hidden owner-locked">
+   <div class="section-head"><h2>Administrator dashboard</h2><button class="secondary" id="adminRefresh">Refresh</button></div>
+   <div id="adminStats" class="grid"></div>
+   <div class="section-head"><h2>Recent service requests</h2></div>
+   <div id="adminBookings" class="grid"></div>
+   <div class="section-head"><h2>Payment confirmations</h2><button class="secondary" id="adminPaymentsRefresh">Refresh</button></div>
+   <div id="adminPayments" class="grid"></div>
+   <div class="section-head"><h2>Registered users</h2></div>
+   <div id="adminUsers" class="grid"></div>
+   <div class="section-head"><h2>Build log</h2><span class="pill">Owner only</span></div>
+   <p class="muted small">Private project development history for the TradeConnect Zambia owner account.</p>
+   <div id="adminBuildLog" class="grid">
+    <article class="card"><span class="status accepted">Current build</span><h3>17 November 2026 · Admin workspace</h3><p>Added this private build-history panel to the administrator dashboard. It is displayed only when signed in as simunjijulius@gmail.com and the account has the admin role.</p></article>
+    <article class="card"><span class="pill">Platform</span><h3>TradeConnect core features</h3><p>Worker and customer profiles, service requests, bookings, reviews, community updates, customer job requests and external job-opportunity links are included in the website.</p></article>
+    <article class="card"><span class="pill">Payments</span><h3>Worker subscription workflow</h3><p>Manual payment proof submission and administrator review are included. The configured worker subscription is K10 for 62 days; new accounts are shown a 30-day trial notice.</p></article>
+    <article class="card"><span class="pill">Referrals</span><h3>Verified referral reward</h3><p>The database reward function is configured to grant an eligible worker one calendar month of subscription after 10 referred accounts verify their email, once per inviter.</p></article>
+    <article class="card"><span class="pill">Security</span><h3>Owner-restricted administration</h3><p>The admin dashboard and security/account review log are restricted in the website to the owner email and admin role. Security flags are for manual review.</p></article>
+    <article class="card"><span class="pill">Documents</span><h3>Julius AI Tec workspace</h3><p>The CV and application-letter workspace supports editable template drafts and document export. A live AI engine is not connected yet.</p></article>
+   </div>
+   <div class="section-head"><h2>Security & account review log</h2><button class="secondary" id="adminLogsRefresh" type="button">Refresh logs</button></div>
+   <p class="muted small">Only the owner account can read this section. Repeated phone numbers are flagged for manual review; accounts are not automatically deleted.</p>
+   <div id="adminSecurityLogs" class="grid"></div>
+  </section>
+ </section>
+ <section id="welcomeDirectory">
+  <div class="section-head"><h2>Popular skill categories</h2><span class="muted small">18 professions</span></div>
+  <div class="grid" id="categoryTiles"></div>
+  <div class="notice">Create a free account to view worker profiles, contact skilled professionals and request services.</div>
+ </section>
+</main>
+<footer>TradeConnect Zambia · Connecting Skills to Opportunities<br>Powered by Julius AI Tec · Project by Julius Simunji</footer>
+<div id="modal" class="modal hidden"><div class="modalbox"><div class="modalhead"><h2 id="modalTitle">Request a service</h2><button class="close" id="modalClose">Close</button></div><div id="modalBody"></div></div></div>
+<script>
+(() => {
+ 'use strict';
+ const SUPABASE_URL = 'https://anicgbjdbahffxckdyto.supabase.co';
+ const SUPABASE_KEY = 'sb_publishable_7yIWnCRMb4jRG8DrZhRwSw_kC1MFxg3';
+ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+ const $ = id => document.getElementById(id);
+ const state = {user:null, profile:null, categories:[], authMode:'signup', recoveryMode:false, activeSubscription:false};
+ const OWNER_EMAIL='simunjijulius@gmail.com';
+ const isOwner=()=>String(state.user?.email||'').toLowerCase()===OWNER_EMAIL && state.profile?.role==='admin';
+ const incomingReferral=(new URLSearchParams(location.search).get('ref')||'').trim().toUpperCase();
+ const fallbackSkills = ['Electrical','Plumbing','Welding','Carpentry','Mechanics','Painting','Computer & IT','Tailoring','Driving','Bricklaying','Agriculture','Construction','Refrigeration & AC','Phone Repair','Hairdressing','Catering','General Maintenance','Other Skills'];
+ function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+ function msg(text,type='notice'){ $('message').textContent=text; $('message').className='notice '+(type==='error'?'error':type==='success'?'success':''); $('message').classList.remove('hidden'); window.scrollTo({top:0,behavior:'smooth'}); }
+ function clearMsg(){ $('message').classList.add('hidden'); }
+ function setBusy(button,busy,label){button.disabled=busy;button.textContent=busy?'Please wait…':label;}
+ function setSelect(id,values,first){const el=$(id);el.innerHTML=(first?'<option value="">'+esc(first)+'</option>':'')+values.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');}
+ function showAuth(mode='signup'){state.recoveryMode=false;$('recoveryPage').classList.add('hidden');state.authMode=mode;$('authPanel').classList.remove('hidden');$('authTitle').textContent=mode==='signup'?'Create an account':'Welcome back';$('signupFields').classList.toggle('hidden',mode==='login');$('signupTab').className=mode==='signup'?'':'secondary';$('loginTab').className=mode==='login'?'':'secondary';$('authSubmit').textContent=mode==='signup'?'Create account':'Sign in';$('forgotWrap').classList.toggle('hidden',mode!=='login');$('authPanel').scrollIntoView({behavior:'smooth'});}
+ function showModal(title,html){$('modalTitle').textContent=title;$('modalBody').innerHTML=html;$('modal').classList.remove('hidden');}
+ function hideModal(){$('modal').classList.add('hidden');}
+ async function loadCategories(){
+  const {data,error}=await db.from('categories').select('name').order('id');
+  state.categories=error||!data?.length?fallbackSkills:data.map(x=>x.name);
+  ['skill','pSkill','cjSkill'].forEach(id=>setSelect(id,state.categories));setSelect('customerJobSkill',state.categories,'All skills');
+  setSelect('filterSkill',state.categories,'All professions');
+  renderSignupInterests();$('categoryTiles').innerHTML=state.categories.map((s,i)=>'<div class="card"><span class="pill">SKILL '+String(i+1).padStart(2,'0')+'</span><h3>'+esc(s)+'</h3><p>Find people offering '+esc(s.toLowerCase())+' services.</p></div>').join('');
+ }
+ function applyRoleNavigation(){
+  const role=state.profile?.role||'customer';
+  const owner=isOwner();
+  $('adminTab').classList.toggle('hidden',!owner);
+  $('adminTab').classList.toggle('owner-locked',!owner);
+  $('admin').classList.toggle('owner-locked',!owner);
+  $('navTabs').querySelectorAll('[data-tab]').forEach(b=>{const allowed=(b.dataset.roles||'customer,worker,admin').split(',');b.classList.toggle('hidden',!allowed.includes(role)||(b.dataset.tab==='admin'&&!owner));});
+  $('directory').classList.toggle('hidden',role==='worker');
+  $('customerJobCreate').classList.toggle('hidden',role!=='customer');
+  const jobsTab=$('navTabs').querySelector('[data-tab=customerjobs]');if(jobsTab)jobsTab.textContent=role==='worker'?'Find customers':'Customer job requests';
+  const jobsHeading=$('customerjobs').querySelector('h2');if(jobsHeading)jobsHeading.textContent=role==='worker'?'Customers looking to hire':'Customer job requests';
+  $('subscriptionPanel').classList.toggle('hidden',role!=='worker'&&!isOwner());
+  $('workerPostTools').classList.toggle('hidden',role!=='worker'&&!isOwner());
+  if(role==='worker' && $('directory').classList.contains('hidden')){
+    document.querySelectorAll('.tabpane').forEach(x=>x.classList.add('hidden'));
+    $('customerjobs').classList.remove('hidden');
+    $('navTabs').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x.dataset.tab==='customerjobs'));
+  }
+ }
+ function showWorkerPaymentPrompt(action){
+  showModal('Worker subscription required',`<p>To ${esc(action)}, activate your worker subscription first.</p><div class="notice"><strong>K10 · 62 days</strong><br>Airtel Agent Code: <strong>20283741</strong><br>Agent Name: <strong>Julius Simunji</strong><br>Pay K10, then submit your transaction reference and payment proof for admin confirmation.</div><button type="button" id="goSubscription">Open subscription & payments</button>`);
+  $('goSubscription').onclick=()=>{hideModal();document.querySelectorAll('.tabpane').forEach(x=>x.classList.add('hidden'));$('subscription').classList.remove('hidden');$('navTabs').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x.dataset.tab==='subscription'));loadMyPayments();loadSubscriptionStatus();};
+ }
+ function updateTrialNotice(){
+  const box=$('trialNotice');if(!box)return;
+  if(!state.user||!state.profile||isOwner()){box.classList.add('hidden');return;}
+  const expiry=state.profile.trial_expires_at?new Date(state.profile.trial_expires_at):null;
+  if(expiry && expiry.getTime()>Date.now()){
+   box.textContent='Your 30-day free trial is active until '+expiry.toLocaleDateString()+'. All available account features are unlocked during the trial.';
+  }else if(state.profile.role==='worker'){
+   box.textContent='Your free trial has ended. Continue worker posting and replies with K10 for 62 days. Customer accounts remain free.';
+  }else{
+   box.textContent='Your free trial period has ended. Customer browsing, bookings and messaging remain free.';
+  }
+  box.classList.remove('hidden');
+ }
+ function updateHeader(){
+  if(state.recoveryMode){$('authArea').innerHTML='<span class="small">Password recovery</span>'; $('authPanel').classList.add('hidden'); $('appArea').classList.add('hidden'); $('recoveryPage').classList.remove('hidden'); return;}
+  $('recoveryPage').classList.add('hidden');
+  $('authArea').innerHTML=state.user?'<span class="small">Signed in</span>':'<button id="authOpen" class="secondary">Sign in</button>';
+  if(!state.user){$('adminTab').classList.add('hidden','owner-locked');$('admin').classList.add('owner-locked');$('authOpen').onclick=()=>showAuth('login');$('authPanel').classList.add('hidden');$('appArea').classList.add('hidden');$('welcomeDirectory').classList.remove('hidden');return;}
+  $('appArea').classList.remove('hidden');$('welcomeDirectory').classList.add('hidden');$('authPanel').classList.add('hidden');
+  $('welcome').textContent='Hello, '+(state.profile?.full_name||'there');
+  $('userRole').textContent=(state.profile?.role||'customer').toUpperCase()+' ACCOUNT · '+(state.profile?.location||'Zambia');
+  updateTrialNotice();
+  $('adminTab').classList.toggle('hidden',!isOwner());
+  applyRoleNavigation();
+  $('authArea').innerHTML='<span class="small">'+esc(state.profile?.full_name||'Account')+'</span>';
+ }
+ async function loadProfile(){
+  if(!state.user)return;
+  const {data,error}=await db.from('profiles').select('*').eq('id',state.user.id).single();
+  if(error){msg('Could not load your profile: '+error.message,'error');return;}
+  state.profile=data;await loadSubscriptionStatus();updateHeader();fillProfile();applyRoleNavigation();if(state.profile.role==='customer'){await syncCustomerInterests();await renderProfileInterests();}
+ }
+ function fillProfile(){
+  const p=state.profile;if(!p)return;
+  $('pName').value=p.full_name||'';$('pPhone').value=p.phone||'';$('pLocation').value=p.location||'';$('pBio').value=p.bio||'';$('profileAvatarPreview').src=p.avatar_url||'https://placehold.co/120x120?text=Photo';
+  $('pWorkerFields').classList.toggle('hidden',p.role!=='worker');$('profileInterestPanel').classList.toggle('hidden',p.role!=='customer');
+  $('workerPostTools').classList.toggle('hidden',p.role!=='worker' && p.role!=='admin');$('subscriptionPanel').classList.toggle('hidden',p.role!=='worker' && p.role!=='admin');
+  if(p.role==='worker'){$('pSkill').value=p.skill||'';$('pExperience').value=p.experience||'';$('pDescription').value=p.description||'';}
+ }
+ async function loadWorkers(){
+  if(!state.user){showAuth('login');return;}
+  $('workerList').innerHTML='<div class="empty">Loading professionals…</div>';
+  let q=db.from('profiles').select('id,full_name,phone,location,skill,experience,description,role').eq('role','worker').order('created_at',{ascending:false}).limit(100);
+  const term=$('searchText').value.trim(),skill=$('filterSkill').value,loc=$('filterLocation').value.trim();
+  if(term)q=q.or('full_name.ilike.%'+term.replace(/[(),]/g,'')+'%,skill.ilike.%'+term.replace(/[(),]/g,'')+'%,description.ilike.%'+term.replace(/[(),]/g,'')+'%');
+  if(skill)q=q.eq('skill',skill);
+  if(loc)q=q.ilike('location','%'+loc+'%');
+  const {data,error}=await q;
+  if(error){$('workerList').innerHTML='<div class="notice error">'+esc(error.message)+'</div>';return;}
+  $('workerCount').textContent=(data?.length||0)+' found';
+  $('workerList').innerHTML=data?.length?data.map(w=>`<article class="card"><span class="pill">${esc(w.skill||'Other Skills')}</span><h3>${esc(w.full_name)}</h3><p>📍 ${esc(w.location||'Zambia')} · ${esc(w.experience||'Experience not stated')}</p><p>${esc(w.description||'Skilled service provider')}</p><div class="actions"><button data-contact="${esc(w.id)}" class="secondary">View contact</button><button data-profile="${esc(w.id)}" class="secondary">View profile</button><button data-book="${esc(w.id)}">Request service</button></div></article>`).join(''):'<div class="empty">No workers match your search yet. Try another skill or location.</div>';
+  $('workerList').querySelectorAll('[data-profile]').forEach(b=>b.onclick=()=>viewWorkerProfile(b.dataset.profile));
+  $('workerList').querySelectorAll('[data-book]').forEach(b=>b.onclick=()=>bookingForm(b.dataset.book,data.find(w=>w.id===b.dataset.book)));
+  $('workerList').querySelectorAll('[data-contact]').forEach(b=>b.onclick=()=>{const w=data.find(x=>x.id===b.dataset.contact);showModal('Worker contact',`<h3>${esc(w.full_name)}</h3><p>${esc(w.skill||'')}</p><p><b>Phone:</b> ${esc(w.phone||'Not provided')}</p><p><b>Location:</b> ${esc(w.location||'')}</p><p class="small muted">Please communicate respectfully and agree on service details before work begins.</p>`);});
+ }
+ function bookingForm(workerId,w){
+  showModal('Request '+(w.skill||'a service'),`<p>Requesting <b>${esc(w.full_name)}</b> · ${esc(w.skill||'')}</p><form id="bookingForm"><div class="field"><label>Service required</label><input id="bService" required maxlength="120" value="${esc(w.skill||'')}" /></div><div class="field"><label>Describe the work</label><textarea id="bDetails" maxlength="1000" placeholder="Explain what you need done"></textarea></div><div class="field"><label>Service location</label><input id="bLocation" required maxlength="150" value="${esc(state.profile?.location||'')}" /></div><button type="submit" id="sendBooking">Send request</button></form>`);
+  $('bookingForm').onsubmit=async e=>{e.preventDefault();const btn=$('sendBooking');setBusy(btn,true,'Send request');const {error}=await db.from('bookings').insert({customer_id:state.user.id,worker_id:workerId,service:$('bService').value.trim(),details:$('bDetails').value.trim(),location:$('bLocation').value.trim()});setBusy(btn,false,'Send request');if(error){msg('Booking failed: '+error.message,'error');return;}hideModal();msg('Your service request has been sent. You can track it under My bookings.','success');loadBookings();};
+ }
+ async function loadBookings(){
+  if(!state.user)return;
+  $('bookingList').innerHTML='<div class="empty">Loading bookings…</div>';
+  const {data,error}=await db.from('bookings').select('id,customer_id,worker_id,service,details,location,status,created_at,worker:profiles!bookings_worker_id_fkey(full_name,phone,skill),customer:profiles!bookings_customer_id_fkey(full_name,phone)').order('created_at',{ascending:false}).limit(100);
+  if(error){$('bookingList').innerHTML='<div class="notice error">'+esc(error.message)+'</div>';return;}
+  $('bookingList').innerHTML=data?.length?data.map(b=>{
+   const mine=state.profile.role==='worker',other=mine?b.customer:b.worker;
+   let buttons=`<button class="secondary" data-chat="${b.id}" data-other="${esc(other?.full_name||'Booking participant')}">Open chat</button>`;
+   if(mine&&b.status==='pending')buttons=`<button data-status="accepted" data-id="${b.id}">Accept</button><button class="danger" data-status="rejected" data-id="${b.id}">Reject</button>`;
+   if(mine&&b.status==='accepted')buttons=`<button data-status="completed" data-id="${b.id}">Mark completed</button>`;
+   if(!mine&&['pending','accepted'].includes(b.status))buttons=`<button class="danger" data-status="cancelled" data-id="${b.id}">Cancel request</button>`;
+   if(!mine&&b.status==='completed')buttons=`<button class="secondary" data-review="${b.id}" data-worker="${b.worker_id}">Leave review</button>`;
+   return `<article class="card"><span class="status ${esc(b.status)}">${esc(b.status.toUpperCase())}</span><h3>${esc(b.service)}</h3><p>${mine?'Customer':'Worker'}: ${esc(other?.full_name||'Account')}</p><p>📍 ${esc(b.location)}</p><p>${esc(b.details||'No extra details')}</p><p class="small muted">${new Date(b.created_at).toLocaleString()}</p><div class="actions">${buttons}</div></article>`;
+  }).join(''):'<div class="empty">No bookings yet.</div>';
+  $('bookingList').querySelectorAll('[data-chat]').forEach(b=>b.onclick=()=>openBookingChat(b.dataset.chat,b.dataset.other));
+  $('bookingList').querySelectorAll('[data-status]').forEach(b=>b.onclick=()=>changeStatus(b.dataset.id,b.dataset.status));
+  $('bookingList').querySelectorAll('[data-review]').forEach(b=>b.onclick=()=>reviewForm(b.dataset.id,b.dataset.worker));
+ }
+ async function changeStatus(id,status){
+  const {error}=await db.from('bookings').update({status}).eq('id',id);
+  if(error){msg('Could not update booking: '+error.message,'error');return;}
+  msg('Booking updated.','success');loadBookings();
+ }
+ function reviewForm(bookingId,workerId){
+  showModal('Rate this service',`<form id="reviewForm"><div class="field"><label>Rating</label><select id="rating"><option value="5">★★★★★ — Excellent</option><option value="4">★★★★ — Very good</option><option value="3">★★★ — Good</option><option value="2">★★ — Fair</option><option value="1">★ — Poor</option></select></div><div class="field"><label>Comment (optional)</label><textarea id="reviewComment" maxlength="600"></textarea></div><button type="submit">Submit review</button></form>`);
+  $('reviewForm').onsubmit=async e=>{e.preventDefault();const {error}=await db.from('reviews').insert({booking_id:bookingId,customer_id:state.user.id,worker_id:workerId,rating:Number($('rating').value),comment:$('reviewComment').value.trim()});if(error){msg('Review could not be saved: '+error.message,'error');return;}hideModal();msg('Thank you for your review.','success');};
+ }
+ async function saveProfile(e){
+  e.preventDefault();const update={full_name:$('pName').value.trim(),phone:$('pPhone').value.trim(),location:$('pLocation').value.trim(),bio:$('pBio').value.trim()};const avatar=$('profileAvatarFile').files[0];if(avatar){if(avatar.size>5*1024*1024){msg('Profile picture must be 5 MB or smaller.','error');return;}const ext=(avatar.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const path=state.user.id+'/avatar-'+Date.now()+'.'+ext;const up=await db.storage.from('tradeconnect-media').upload(path,avatar,{contentType:avatar.type,upsert:true});if(up.error){msg('Picture upload failed: '+up.error.message,'error');return;}update.avatar_url=db.storage.from('tradeconnect-media').getPublicUrl(path).data.publicUrl;}
+  if(state.profile.role==='worker'){update.skill=$('pSkill').value;update.experience=$('pExperience').value.trim();update.description=$('pDescription').value.trim();}
+  const {error}=await db.from('profiles').update(update).eq('id',state.user.id);
+  if(error){msg('Profile update failed: '+error.message,'error');return;}
+  await loadProfile();msg('Profile saved.','success');
+ }
+ async function loadSubscriptionStatus(){
+  if(!state.user)return;
+  const paymentForm=$('paymentForm');
+  if(isOwner()){state.activeSubscription=true;if(paymentForm)paymentForm.classList.add('hidden');$('subscriptionStatus').innerHTML='<span class="pill" style="background:#e4f5ed;color:#126746">FULL ACCESS</span> Your account has unrestricted access.';return;}
+  if(state.profile?.role!=='worker'){state.activeSubscription=false;if(paymentForm)paymentForm.classList.add('hidden');$('subscriptionStatus').textContent='Customer features, bookings and messaging remain free.';return;}
+  const trialExpiry=state.profile?.trial_expires_at?new Date(state.profile.trial_expires_at):null;
+  if(trialExpiry && trialExpiry.getTime()>Date.now()){
+   state.activeSubscription=true;if(paymentForm)paymentForm.classList.add('hidden');
+   $('subscriptionStatus').innerHTML='<span class="pill" style="background:#e4f5ed;color:#126746">30-DAY FREE TRIAL ACTIVE</span> All worker features are unlocked until '+trialExpiry.toLocaleDateString()+'. After the trial, K10 gives 62 days of access.';
+   return;
+  }
+  const {data,error}=await db.from('worker_subscriptions').select('expires_at').eq('worker_id',state.user.id).lte('starts_at',new Date().toISOString()).gt('expires_at',new Date().toISOString()).order('expires_at',{ascending:false}).limit(1);
+  if(error){$('subscriptionStatus').textContent='Could not check subscription: '+error.message;return;}
+  state.activeSubscription=!!data?.length;
+  if(paymentForm)paymentForm.classList.toggle('hidden',state.activeSubscription);
+  $('subscriptionStatus').innerHTML=state.activeSubscription?'<span class="pill" style="background:#e4f5ed;color:#126746">✓ SUBSCRIBED</span> Posting and reply access active until '+new Date(data[0].expires_at).toLocaleDateString()+'.':'<span class="status">FREE TRIAL ENDED</span> Pay K10 for 62 days and submit your proof for administrator confirmation.';
+ }
+ async function loadMyPayments(){
+  if(!state.user)return;
+  const {data,error}=await db.from('payment_submissions').select('id,transaction_reference,status,admin_note,created_at').eq('user_id',state.user.id).order('created_at',{ascending:false}).limit(20);
+  const box=$('myPayments');if(!box)return;
+  if(error){box.innerHTML='<p class="notice error">'+esc(error.message)+'</p>';return;}
+  box.innerHTML=data?.length?data.map(x=>`<div class="card"><span class="status ${x.status==='approved'?'accepted':x.status==='rejected'?'rejected':''}">${esc(x.status.toUpperCase())}</span><p>Reference: ${esc(x.transaction_reference)}</p><p class="small muted">${new Date(x.created_at).toLocaleString()}</p>${x.admin_note?'<p>'+esc(x.admin_note)+'</p>':''}</div>`).join(''):'<p class="muted small">No payment submissions yet.</p>';
+ }
+ async function submitPayment(e){
+  e.preventDefault();if(state.profile?.role!=='worker'){msg('Only skilled worker accounts can subscribe.','error');return;}
+  const file=$('paymentProof').files[0],reference=$('paymentReference').value.trim();if(!file||!reference){msg('Enter the transaction reference and attach your payment screenshot.','error');return;}
+  if(file.size>10*1024*1024){msg('The proof file must be 10 MB or smaller.','error');return;}
+  const btn=$('submitPayment');setBusy(btn,true,'Submit payment for confirmation');
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const path=`${state.user.id}/${crypto.randomUUID()}.${ext}`;
+  const up=await db.storage.from('tradeconnect-payment-proofs').upload(path,file,{contentType:file.type,upsert:false});
+  if(up.error){setBusy(btn,false,'Submit payment for confirmation');msg('Could not upload proof: '+up.error.message,'error');return;}
+  const proof=db.storage.from('tradeconnect-payment-proofs').getPublicUrl(path).data.publicUrl;
+  const {error}=await db.from('payment_submissions').insert({user_id:state.user.id,transaction_reference:reference,proof_url:path});
+  setBusy(btn,false,'Submit payment for confirmation');
+  if(error){msg('Payment record could not be submitted: '+error.message,'error');return;}
+  $('paymentReference').value='';$('paymentProof').value='';await loadMyPayments();msg('Payment proof submitted. Your posting subscription will activate after the administrator verifies it.','success');
+ }
+ async function loadAdminPayments(){
+  if(!isOwner())return;
+  const box=$('adminPayments');box.innerHTML='<div class="empty">Loading payment submissions…</div>';
+  const {data,error}=await db.from('payment_submissions').select('id,user_id,transaction_reference,proof_url,status,created_at,profiles!payment_submissions_user_id_fkey(full_name,phone,role)').order('created_at',{ascending:false}).limit(100);
+  if(error){box.innerHTML='<div class="notice error">'+esc(error.message)+'</div>';return;}
+  if(!data?.length){box.innerHTML='<div class="empty">No payment proofs submitted yet.</div>';return;}
+  box.innerHTML=data.map(x=>`<article class="card"><span class="status ${x.status==='approved'?'accepted':x.status==='rejected'?'rejected':''}">${esc(x.status.toUpperCase())}</span><h3>${esc(x.profiles?.full_name||'Worker')}</h3><p>${esc(x.profiles?.phone||'')} · K10 / 62 days</p><p>Transaction: <strong>${esc(x.transaction_reference)}</strong></p><p class="small muted">${new Date(x.created_at).toLocaleString()}</p><button class="secondary" data-proof="${esc(x.id)}">View payment proof</button>${x.status==='pending'?`<div class="actions"><button data-approve="${esc(x.id)}">Approve & activate 62 days</button><button class="danger" data-reject="${esc(x.id)}">Reject</button></div>`:''}</article>`).join('');
+  box.querySelectorAll('[data-proof]').forEach(async b=>{b.onclick=async()=>{const item=data.find(x=>x.id===b.dataset.proof);const {data:signed,error}=await db.storage.from('tradeconnect-payment-proofs').createSignedUrl(item.proof_url,300);if(error){msg('Could not open proof: '+error.message,'error');return;}window.open(signed.signedUrl,'_blank','noopener');};});
+  box.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>reviewPayment(b.dataset.approve,'approved'));
+  box.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>reviewPayment(b.dataset.reject,'rejected'));
+ }
+ async function reviewPayment(id,status){
+  const note=status==='rejected'?(prompt('Optional reason for rejection:')||'Payment not verified.'):'Payment verified by administrator.';
+  if(!confirm(status==='approved'?'Approve this payment and activate 62 days of worker access?':'Reject this payment submission?'))return;
+  const {error}=await db.from('payment_submissions').update({status,admin_note:note,reviewed_by:state.user.id,reviewed_at:new Date().toISOString()}).eq('id',id).eq('status','pending');
+  if(error){msg('Could not update payment: '+error.message,'error');return;}
+  await loadAdminPayments();msg(status==='approved'?'Payment approved. The worker now has 62 days of posting access.':'Payment submission rejected.','success');
+ }
+ async function loadMyPosts(){
+  if(!state.user)return;
+  $('myPosts').innerHTML='<div class="empty">Loading posts…</div>';
+  const {data,error}=await db.from('profile_posts').select('id,caption,media_url,media_type,created_at').eq('profile_id',state.user.id).order('created_at',{ascending:false}).limit(50);
+  if(error){$('myPosts').innerHTML='<div class="notice error">'+esc(error.message)+'</div>';return;}
+  renderPosts($('myPosts'),data||[],true);
+ }
+ function renderPosts(target,posts,own=false){
+  target.innerHTML=posts.length?posts.map(p=>`<article class="card">${p.media_type==='image'&&p.media_url?`<img src="${esc(p.media_url)}" alt="Shared work" loading="lazy" style="width:100%;max-height:320px;object-fit:cover;border-radius:10px">`:''}${p.media_type==='video'&&p.media_url?`<video src="${esc(p.media_url)}" controls playsinline style="width:100%;max-height:320px;border-radius:10px"></video>`:''}<p style="white-space:pre-wrap">${esc(p.caption||'')}</p><p class="small muted">${new Date(p.created_at).toLocaleString()}</p>${own?`<button class="danger" data-delete-post="${p.id}">Delete post</button>`:''}</article>`).join(''):'<div class="empty">No posts yet.</div>';
+  target.querySelectorAll('[data-delete-post]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this post?'))return;const {error}=await db.from('profile_posts').delete().eq('id',b.dataset.deletePost);if(error){msg('Could not delete post: '+error.message,'error');return;}loadMyPosts();});
+ }
+ async function publishPost(e){
+  e.preventDefault();if(state.profile?.role==='worker'&&!state.activeSubscription){showWorkerPaymentPrompt('publish updates');return;}const btn=$('publishPost'),file=$('postMedia').files[0],caption=$('postCaption').value.trim();
+  if(!caption&&!file){msg('Write an update or choose a photo/video first.','error');return;}
+  if(file&&file.size>50*1024*1024){msg('The selected file is larger than 50 MB.','error');return;}
+  setBusy(btn,true,'Publish post');let media_url=null,media_type='text';
+  if(file){const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');const path=`${state.user.id}/${crypto.randomUUID()}.${ext}`;const up=await db.storage.from('tradeconnect-media').upload(path,file,{contentType:file.type,upsert:false});if(up.error){setBusy(btn,false,'Publish post');msg('Media upload failed: '+up.error.message,'error');return;}media_url=db.storage.from('tradeconnect-media').getPublicUrl(path).data.publicUrl;media_type=file.type.startsWith('video/')?'video':'image';}
+  const {error}=await db.from('profile_posts').insert({profile_id:state.user.id,caption,media_url,media_type});setBusy(btn,false,'Publish post');if(error){msg('Post could not be saved: '+error.message,'error');return;}
+  $('postCaption').value='';$('postMedia').value='';await loadMyPosts();msg('Your post has been published.','success');
+ }
+ async function viewWorkerProfile(id){
+  const [{data:w,error},{data:posts,error:pe}]=await Promise.all([
+   db.from('profiles').select('id,full_name,phone,location,skill,experience,description').eq('id',id).single(),
+   db.from('profile_posts').select('id,caption,media_url,media_type,created_at').eq('profile_id',id).order('created_at',{ascending:false}).limit(30)
+  ]);
+  if(error){msg('Could not load profile: '+error.message,'error');return;}
+  showModal('Worker profile',`<h3>${esc(w.full_name)}</h3><p><span class="pill">${esc(w.skill||'Skilled worker')}</span></p><p>📍 ${esc(w.location||'Zambia')}</p><p>${esc(w.experience||'Experience not stated')}</p><p>${esc(w.description||'')}</p><p><b>Contact:</b> ${esc(w.phone||'Not provided')}</p><hr><h3>Posts & work gallery</h3><div id="workerPosts"></div>`);
+  if(pe){$('workerPosts').textContent='Could not load posts.';}else renderPosts($('workerPosts'),posts||[],false);
+ }
+ async function loadCommunityFeed(){
+  if(!state.user)return;
+  const box=$('communityFeed');box.innerHTML='<div class="empty">Loading community updates…</div>';
+  const {data:posts,error}=await db.from('profile_posts').select('id,profile_id,caption,media_url,media_type,created_at').order('created_at',{ascending:false}).limit(60);
+  if(error){box.innerHTML='<div class="notice error">Could not load updates: '+esc(error.message)+'</div>';return;}
+  if(!posts?.length){box.innerHTML='<div class="empty">No updates have been shared yet. Check back soon.</div>';return;}
+  const ids=[...new Set(posts.map(p=>p.profile_id))];
+  const {data:workers, error:workerError}=await db.from('profiles').select('id,full_name,location,skill').in('id',ids).eq('role','worker');
+  if(workerError){box.innerHTML='<div class="notice error">Could not load worker details: '+esc(workerError.message)+'</div>';return;}
+  const byId=new Map((workers||[]).map(w=>[w.id,w]));
+  let visible=posts.filter(p=>byId.has(p.profile_id));if(state.profile?.role==='customer'){visible=visible.filter(p=>state.customerInterests?.includes(byId.get(p.profile_id)?.skill));}
+  box.innerHTML=visible.length?visible.map(p=>{const w=byId.get(p.profile_id);return `<article class="card">
+   <div class="row" style="align-items:center"><div style="min-width:0"><h3 style="margin:0">${esc(w.full_name||'Skilled worker')}</h3><p class="small muted" style="margin:2px 0">${esc(w.skill||'Professional')} · ${esc(w.location||'Zambia')}</p></div><span class="pill">${esc(w.skill||'Worker')}</span></div>
+   ${p.media_type==='image'&&p.media_url?`<img src="${esc(p.media_url)}" alt="Work shared by ${esc(w.full_name)}" loading="lazy" style="width:100%;max-height:360px;object-fit:cover;border-radius:10px;margin-top:10px">`:''}
+   ${p.media_type==='video'&&p.media_url?`<video src="${esc(p.media_url)}" controls playsinline preload="metadata" style="width:100%;max-height:360px;border-radius:10px;margin-top:10px"></video>`:''}
+   ${p.caption?`<p style="white-space:pre-wrap;color:var(--ink)">${esc(p.caption)}</p>`:''}
+   <p class="small muted">${new Date(p.created_at).toLocaleString()}</p><div class="actions"><button class="secondary" data-feed-profile="${esc(w.id)}">View worker profile</button></div>
+  </article>`;}).join(''):'<div class="empty">No updates match your selected skills yet. Search other skills in Find workers, or update your interests in your profile.</div>';
+  box.querySelectorAll('[data-feed-profile]').forEach(b=>b.onclick=()=>viewWorkerProfile(b.dataset.feedProfile));
+ }
+ async function openBookingChat(bookingId,otherName){
+  showModal('Booking chat',`<p class="muted small">Conversation with ${esc(otherName)} about this service request. Customers can send the first message for free. Workers need an active K10 / 62-day subscription to reply. Subscribed conversations support text, photos and videos; live calls are not enabled yet.</p><div id="chatMessages" style="max-height:45vh;overflow:auto;display:grid;gap:8px;margin:12px 0"></div><form id="chatForm"><div class="field"><label>Message</label><textarea id="chatText" maxlength="3000" placeholder="Write a message..."></textarea></div><div class="field"><label>Attach a photo or video (subscribed chat)</label><input id="chatMedia" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"></div><div class="row"><button type="submit" id="sendChat">Send message</button><button type="button" class="secondary" id="refreshChat">Refresh chat</button></div></form>`);
+  const load=async()=>{const {data,error}=await db.from('booking_messages').select('id,sender_id,body,media_url,media_type,created_at').eq('booking_id',bookingId).order('created_at',{ascending:true}).limit(200);const box=$('chatMessages');if(!box)return;if(error){box.innerHTML='<p class="notice error">'+esc(error.message)+'</p>';return;}box.innerHTML=data?.length?data.map(m=>`<div style="justify-self:${m.sender_id===state.user.id?'end':'start'};max-width:90%;background:${m.sender_id===state.user.id?'#e5f1fb':'#f0f2f5'};padding:9px 12px;border-radius:12px">${m.body?`<div style="white-space:pre-wrap">${esc(m.body)}</div>`:''}${m.media_type==='image'&&m.media_url?`<img src="${esc(m.media_url)}" alt="Chat attachment" style="max-width:100%;border-radius:9px">`:''}${m.media_type==='video'&&m.media_url?`<video src="${esc(m.media_url)}" controls playsinline style="max-width:100%;border-radius:9px"></video>`:''}<div class="small muted">${new Date(m.created_at).toLocaleString()}</div></div>`).join(''):'<p class="empty">No messages yet. Start the conversation.</p>';box.scrollTop=box.scrollHeight;};
+  await load();$('refreshChat').onclick=load;
+  $('chatForm').onsubmit=async e=>{e.preventDefault();const btn=$('sendChat'),body=$('chatText').value.trim(),file=$('chatMedia').files[0];if(!body&&!file)return;if(state.profile?.role==='worker'&&!state.activeSubscription){showWorkerPaymentPrompt('reply to customer messages or send chat media');return;}if(file&&file.size>50*1024*1024){msg('Chat attachment must be 50 MB or smaller.','error');return;}setBusy(btn,true,'Sending…');let media_url=null,media_type=null;if(file){const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');const path=state.user.id+'/chat-'+crypto.randomUUID()+'.'+ext;const up=await db.storage.from('tradeconnect-media').upload(path,file,{contentType:file.type,upsert:false});if(up.error){setBusy(btn,false,'Send message');msg('Attachment upload failed: '+up.error.message,'error');return;}media_url=db.storage.from('tradeconnect-media').getPublicUrl(path).data.publicUrl;media_type=file.type.startsWith('video/')?'video':'image';}const {error}=await db.from('booking_messages').insert({booking_id:bookingId,sender_id:state.user.id,body,media_url,media_type,message_kind:media_type||'text'});setBusy(btn,false,'Send message');if(error){msg(error.message.includes('row-level security')?'A worker needs an active K10 / 62-day subscription to reply.':'Message could not be sent: '+error.message,'error');return;}$('chatText').value='';$('chatMedia').value='';await load();};
+ }
+ async function loadReferralStats(){
+  if(!state.user||!state.profile)return;
+  const code=state.profile.referral_code||state.user.id.replace(/-/g,'').slice(0,8).toUpperCase();
+  const link=location.origin+location.pathname+'?ref='+encodeURIComponent(code);
+  if($('referralLink'))$('referralLink').value=link;
+  const {data,error}=await db.from('referral_registered_counts').select('verified_registered_users').eq('profile_id',state.user.id).maybeSingle();
+  if($('referralCount'))$('referralCount').textContent=error?'—':String(data?.verified_registered_users||0);
+  const {data:reward}=await db.from('referral_subscription_rewards').select('granted_at,subscription_expires_at').eq('inviter_id',state.user.id).maybeSingle();
+  const rewardBox=$('referralRewardStatus');
+  if(rewardBox) rewardBox.textContent=reward ? 'Reward unlocked: your free 30-day worker subscription has been activated.' : `Progress: ${Math.min(Number(data?.verified_registered_users||0),10)} of 10 verified invitations. ${state.profile?.role==='worker'?'Reach 10 to unlock your free 30-day subscription.':'The 30-day subscription reward is available to worker accounts.'}`;
+ }
+ async function loadSecurityLogs(){
+  if(!isOwner())return;
+  const box=$('adminSecurityLogs');box.innerHTML='<div class="empty">Loading security events…</div>';
+  const [events,flags]=await Promise.all([
+   db.from('security_event_log').select('id,event_type,severity,description,created_at').order('created_at',{ascending:false}).limit(50),
+   db.from('account_risk_flags').select('id,reason,status,created_at,profile_id').order('created_at',{ascending:false}).limit(50)
+  ]);
+  const rows=[...(events.data||[]).map(x=>({...x,kind:'Event'})),...(flags.data||[]).map(x=>({...x,event_type:'Account risk flag',severity:x.status==='review'?'warning':'info',description:x.reason,kind:'Account review'}))].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  if(events.error||flags.error){box.innerHTML='<div class="notice error">Could not load logs. Check the database policies.</div>';return;}
+  box.innerHTML=rows.length?rows.map(x=>`<article class="card"><span class="status ${x.severity==='critical'?'rejected':x.severity==='warning'?'':'accepted'}">${esc(x.severity||'info')}</span><h3>${esc(x.event_type)}</h3><p>${esc(x.description)}</p><p class="small muted">${esc(x.kind)} · ${new Date(x.created_at).toLocaleString()}</p></article>`).join(''):'<div class="empty">No security events or account flags recorded yet.</div>';
+ }
+ async function loadAdmin(){
+  if(!isOwner())return;
+  const [u,b,r]=await Promise.all([
+   db.from('profiles').select('id,full_name,phone,location,role,skill,created_at').order('created_at',{ascending:false}).limit(100),
+   db.from('bookings').select('id,service,status,location,created_at,customer:profiles!bookings_customer_id_fkey(full_name),worker:profiles!bookings_worker_id_fkey(full_name)').order('created_at',{ascending:false}).limit(100),
+   db.from('reviews').select('id',{count:'exact',head:true})
+  ]);
+  if(u.error||b.error){msg('Admin data error: '+(u.error||b.error).message,'error');return;}
+  const users=u.data||[],bookings=b.data||[];
+  $('adminStats').innerHTML=[['Registered users',users.length],['Skilled workers',users.filter(x=>x.role==='worker').length],['Customers',users.filter(x=>x.role==='customer').length],['Service requests',bookings.length],['Reviews',r.count||0]].map(x=>`<div class="panel"><div class="muted small">${x[0]}</div><div class="metric">${x[1]}</div></div>`).join('');
+  $('adminBookings').innerHTML=bookings.length?bookings.map(x=>`<div class="card"><span class="status ${esc(x.status)}">${esc(x.status)}</span><h3>${esc(x.service)}</h3><p>${esc(x.customer?.full_name||'')} → ${esc(x.worker?.full_name||'')}</p><p class="small muted">${esc(x.location||'')}</p></div>`).join(''):'<div class="empty">No service requests yet.</div>';
+  $('adminUsers').innerHTML=users.map(x=>`<div class="card"><span class="pill">${esc(x.role)}</span><h3>${esc(x.full_name)}</h3><p>${esc(x.skill||'Customer')} · ${esc(x.location||'')}</p><p class="small muted">${esc(x.phone||'')}</p></div>`).join('');
+  await loadSecurityLogs();
+ }
+ async function onAuth(){
+  const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;
+  if(state.user){await loadProfile();await loadWorkers();await loadReferralStats();}else{state.profile=null;updateHeader();}
+ }
+ $('authOpen').onclick=()=>showAuth('login');$('heroBrowse').onclick=()=>{if(!state.user){showAuth('signup');return;}if(state.profile?.role==='worker'){document.querySelector('[data-tab=customerjobs]').click();}else{document.querySelector('[data-tab=directory]').click();}};
+ $('authClose').onclick=()=>$('authPanel').classList.add('hidden');$('signupTab').onclick=()=>showAuth('signup');$('loginTab').onclick=()=>showAuth('login');
+ $('forgotPassword').onclick=async()=>{
+  clearMsg();
+  const email=$('email').value.trim();
+  if(!email){msg('Enter your registered email address first, then tap Forgot password.','error');$('email').focus();return;}
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+  if(error){msg('Password reset could not be requested: '+error.message,'error');return;}
+  msg('If an account exists for that email, Supabase will send a password reset link. Check your inbox and spam folder.','success');
+ };
+ $('saveNewPassword').onclick=async()=>{
+  const password=$('newPassword').value;
+  const confirm=$('confirmNewPassword').value;
+  if(password.length<6){msg('Choose a password with at least 6 characters.','error');$('newPassword').focus();return;}
+  if(password!==confirm){msg('The passwords do not match. Please enter them again.','error');$('confirmNewPassword').focus();return;}
+  const btn=$('saveNewPassword');setBusy(btn,true,'Save new password');
+  const {error}=await db.auth.updateUser({password});
+  setBusy(btn,false,'Save new password');
+  if(error){msg('Password update failed: '+error.message,'error');return;}
+  state.recoveryMode=false;$('newPassword').value='';$('confirmNewPassword').value='';
+  await db.auth.signOut();state.user=null;state.profile=null;updateHeader();showAuth('login');
+  msg('Your password has been changed successfully. Sign in using your new password.','success');
+ };
+ $('role').onchange=()=>{$('workerFields').classList.toggle('hidden',$('role').value!=='worker');$('customerInterestFields').classList.toggle('hidden',$('role').value!=='customer');};
+ // Customer interests and the new opportunity tools
+ function selectedSignupInterests(){return [...document.querySelectorAll('input[name="signupInterest"]:checked')].map(x=>x.value);}
+ function renderSignupInterests(){const box=$('signupInterestChoices');if(!box)return;box.innerHTML=state.categories.map((skill,i)=>`<label class="card" style="display:flex;gap:8px;align-items:center;padding:9px"><input type="checkbox" name="signupInterest" value="${esc(skill)}" ${i===0?'checked':''} style="width:auto">${esc(skill)}</label>`).join('');}
+ async function syncCustomerInterests(){
+  if(!state.user||state.profile?.role!=='customer')return;
+  const fromMeta=state.user.user_metadata?.customer_interests;
+  if(Array.isArray(fromMeta)&&fromMeta.length){const rows=fromMeta.filter(x=>state.categories.includes(x)).map(skill=>({customer_id:state.user.id,skill}));if(rows.length)await db.from('customer_skill_preferences').upsert(rows,{onConflict:'customer_id,skill',ignoreDuplicates:true});}
+  const {data}=await db.from('customer_skill_preferences').select('skill').eq('customer_id',state.user.id);
+  state.customerInterests=(data||[]).map(x=>x.skill);
+ }
+ async function saveCustomerInterests(){
+  const chosen=[...document.querySelectorAll('input[name="profileInterest"]:checked')].map(x=>x.value);
+  if(!chosen.length){msg('Select at least one skill of interest.','error');return;}
+  const {error:delError}=await db.from('customer_skill_preferences').delete().eq('customer_id',state.user.id);
+  if(delError){msg('Could not update interests: '+delError.message,'error');return;}
+  const {error}=await db.from('customer_skill_preferences').insert(chosen.map(skill=>({customer_id:state.user.id,skill})));
+  if(error){msg('Could not save interests: '+error.message,'error');return;}
+  state.customerInterests=chosen;await loadCommunityFeed();msg('Your skill interests have been updated.','success');
+ }
+ async function renderProfileInterests(){
+  if(state.profile?.role!=='customer')return;
+  await syncCustomerInterests();const box=$('profileInterestChoices');if(!box)return;
+  box.innerHTML=state.categories.map(skill=>`<label class="card" style="display:flex;gap:8px;align-items:center;padding:9px"><input type="checkbox" name="profileInterest" value="${esc(skill)}" ${state.customerInterests?.includes(skill)?'checked':''} style="width:auto">${esc(skill)}</label>`).join('');
+ }
+ async function loadCustomerJobs(){
+  if(!state.user)return;const box=$('customerJobList');box.innerHTML='<div class="empty">Loading customer requests…</div>';
+  let q=db.from('customer_job_requests').select('id,customer_id,skill,title,description,location,job_type,status,contact_phone,created_at').eq('status','open').order('created_at',{ascending:false}).limit(100);
+  const term=$('customerJobSearch').value.trim(),skill=$('customerJobSkill').value,loc=$('customerJobLocation').value.trim();
+  if(term)q=q.or('title.ilike.%'+term.replace(/[(),]/g,'')+'%,description.ilike.%'+term.replace(/[(),]/g,'')+'%');if(skill)q=q.eq('skill',skill);if(loc)q=q.ilike('location','%'+loc+'%');
+  const {data,error}=await q;if(error){box.innerHTML='<div class="notice error">'+esc(error.message)+'</div>';return;}
+  box.innerHTML=data?.length?data.map(j=>`<article class="card"><span class="pill">${esc(j.skill)}</span><h3>${esc(j.title)}</h3><p>${esc(j.description)}</p><p>📍 ${esc(j.location)} · ${esc(j.job_type)}</p><p class="small muted">Posted ${new Date(j.created_at).toLocaleDateString()}</p>${state.profile?.role==='worker'&&j.contact_phone?`<div class="actions"><a href="tel:${esc(j.contact_phone)}" class="pill">Contact customer: ${esc(j.contact_phone)}</a></div>`:''}${j.customer_id===state.user.id?`<button class="secondary" data-close-job="${j.id}">Close request</button>`:''}</article>`).join(''):'<div class="empty">No open customer requests match this search.</div>';
+  box.querySelectorAll('[data-close-job]').forEach(b=>b.onclick=async()=>{const {error}=await db.from('customer_job_requests').update({status:'closed'}).eq('id',b.dataset.closeJob);if(error){msg(error.message,'error');return;}loadCustomerJobs();});
+ }
+ async function submitCustomerJob(e){e.preventDefault();if(state.profile?.role!=='customer'){msg('Only customer accounts can publish customer job requests.','error');return;}const payload={customer_id:state.user.id,skill:$('cjSkill').value,title:$('cjTitle').value.trim(),description:$('cjDescription').value.trim(),location:$('cjLocation').value.trim(),job_type:$('cjType').value,contact_phone:$('cjSharePhone').checked?(state.profile.phone||null):null};const {error}=await db.from('customer_job_requests').insert(payload);if(error){msg('Could not publish request: '+error.message,'error');return;}$('customerJobForm').reset();$('cjLocation').value=state.profile.location||'';msg('Your job request is now visible to skilled workers.','success');loadCustomerJobs();}
+ function searchVacancies(){
+  const source=$('vacancySource').value;let links=[];
+  const official=[
+   ['Government jobs — Public Service Commission','https://www.psc.gov.zm/','Official public-service recruitment and notices'],
+   ['Government jobs — Zambia Public Service','https://www.psmd.gov.zm/','Public Service Management Division'],
+   ['UN Careers','https://careers.un.org/','United Nations official application portal'],
+   ['UNDP Careers','https://www.undp.org/careers','UNDP official vacancies and application instructions'],
+   ['World Vision Careers','https://www.wvi.org/careers','World Vision official careers portal'],
+   ['Zambia NGO jobs — NGOCC','https://ngocc.org.zm/','Zambia NGO coordinating organisation; check official vacancies/notices'],
+   ['BrighterMonday Zambia','https://www.brightermonday.co.zm/','Job listings with employer application instructions'],
+   ['LinkedIn Jobs','https://www.linkedin.com/jobs/','Employer vacancy pages and application routes']
+  ];
+  const chosen=official.filter(x=>source==='all'||(source==='gov'&&x[0].includes('Government'))||(source==='ngo'&&/UN |UNDP|World Vision|NGO/.test(x[0]))||(source==='private'&&/BrighterMonday|LinkedIn/.test(x[0])));
+  $('vacancyUpdated').textContent='Source links refreshed: '+new Date().toLocaleString();
+  $('vacancyLinks').innerHTML=chosen.map(([name,url,desc])=>`<article class="card"><h3>${esc(name)}</h3><p class="small muted">${esc(desc)}</p><a href="${url}" target="_blank" rel="noopener">Open official vacancy portal ↗</a></article>`).join('');
+ }
+ function prepareDocumentDraft(){
+  const type=$('docType').value,name=$('cvName').value.trim(),phone=$('cvPhone').value.trim(),email=$('cvEmail').value.trim(),loc=$('cvLocation').value.trim(),education=$('cvEducation').value.trim(),skills=$('cvSkills').value.trim()||state.profile?.skill||'',experience=$('cvExperience').value.trim(),target=$('cvTarget').value.trim(),extra=$('cvExtra').value.trim();
+  if(!name){msg('Enter your full name first.','error');return;}
+  let out='';
+  if(type==='cv')out=`${name.toUpperCase()}\n${[phone,email,loc].filter(Boolean).join(' | ')}\n\nPROFESSIONAL PROFILE\n${extra||'Motivated candidate seeking an opportunity to apply practical skills, learn and contribute to an organisation.'}\n\nKEY SKILLS\n${skills||'Add your skills here.'}\n\nEDUCATION & QUALIFICATIONS\n${education||'Add your education and qualifications here.'}\n\nWORK EXPERIENCE & PROJECTS\n${experience||'Add relevant work experience, training or projects here.'}\n\nREFERENCES\nAvailable upon request.`;
+  else out=`${name}\n${loc}\n${phone}${email?' | '+email:''}\n\n${new Date().toLocaleDateString()}\n\nThe Hiring Manager\n${target||'[Organisation name]'}\n\nRE: APPLICATION FOR ${target?target.toUpperCase():'[POSITION TITLE]'}\n\nDear Hiring Manager,\n\nI am writing to express my interest in the opportunity stated above. My skills include ${skills||'[insert relevant skills]'}. My background includes ${experience||'[add relevant experience, training or projects]'}.\n\nMy education and qualifications include ${education||'[add education and qualifications]'}. I am willing to contribute, learn and carry out the responsibilities of the role with professionalism.\n\nThank you for considering my application. I would welcome the opportunity to discuss my suitability further.\n\nYours faithfully,\n${name}`;
+  $('docPreview').value=out;msg('Basic editable draft prepared. Review and correct all details.','success');
+ }
+ async function generateWithJuliusAI(){
+  if(!state.user){msg('Please sign in before using Julius AI Tec.','error');return;}
+  const name=$('cvName').value.trim();if(!name){msg('Enter your full name first.','error');return;}
+  const btn=$('generateWithAI'),status=$('aiStatus');setBusy(btn,true,'Generate with Julius AI Tec');status.textContent='Julius AI Tec is preparing your document…';
+  try{
+   const {data:sessionData,error:sessionError}=await db.auth.getSession();if(sessionError||!sessionData?.session?.access_token)throw new Error('Your sign-in session could not be verified. Please sign in again.');
+   const payload={documentType:$('docType').value,fullName:name,phone:$('cvPhone').value.trim(),email:$('cvEmail').value.trim(),location:$('cvLocation').value.trim(),education:$('cvEducation').value.trim(),skills:$('cvSkills').value.trim()||state.profile?.skill||'',experience:$('cvExperience').value.trim(),target:$('cvTarget').value.trim(),extra:$('cvExtra').value.trim()};
+   const response=await fetch('/.netlify/functions/julius-ai',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionData.session.access_token},body:JSON.stringify(payload)});
+   const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||'AI generation failed. Please try again later.');
+   if(!result.document||typeof result.document!=='string')throw new Error('The AI returned an empty document. Please try again.');
+   $('docPreview').value=result.document;status.textContent='AI draft ready. Review every detail, edit if needed, then save or download it.';msg('Julius AI Tec generated your editable draft. Please verify all details before using it.','success');
+  }catch(error){status.textContent=error.message||'AI service is temporarily unavailable.';msg(status.textContent,'error');}
+  finally{setBusy(btn,false,'Generate with Julius AI Tec');}
+ }
+ async function saveDocument(){const content=$('docPreview').value.trim();if(!content){msg('Prepare or enter a document first.','error');return;}const type=$('docType').value,format=$('docFormat').value,title=(type==='cv'?'CV - ':'Application Letter - ')+($('cvName').value.trim()||'My Document');const {error}=await db.from('job_documents').insert({user_id:state.user.id,document_type:type,title,content,output_format:format});if(error){msg('Could not save document: '+error.message,'error');return;}msg('Document saved to your TradeConnect account.','success');loadSavedDocs();}
+ async function loadSavedDocs(){if(!state.user)return;const box=$('savedDocs');const {data,error}=await db.from('job_documents').select('id,title,document_type,content,output_format,created_at').order('created_at',{ascending:false}).limit(30);if(error){box.innerHTML='<p class="notice error">'+esc(error.message)+'</p>';return;}box.innerHTML=data?.length?data.map(d=>`<article class="card"><h3>${esc(d.title)}</h3><p class="small muted">${esc(d.output_format)} · ${new Date(d.created_at).toLocaleDateString()}</p><button class="secondary" data-open-doc="${d.id}">Open / edit</button></article>`).join(''):'<div class="empty">No saved documents yet.</div>';box.querySelectorAll('[data-open-doc]').forEach(b=>b.onclick=()=>{const d=data.find(x=>x.id===b.dataset.openDoc);$('docType').value=d.document_type;$('docFormat').value=d.output_format;$('docPreview').value=d.content;});}
+ function downloadText(){const content=$('docPreview').value;if(!content.trim()){msg('There is no document to download.','error');return;}const blob=new Blob([content],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=($('docType').value==='cv'?'CV':'Application-Letter')+'-'+($('cvName').value.trim().replace(/[^a-z0-9]+/gi,'-')||'document')+'.txt';a.click();URL.revokeObjectURL(url);}
+ function printDocument(){const content=$('docPreview').value;if(!content.trim()){msg('There is no document to print.','error');return;}const w=window.open('','_blank');if(!w){msg('Allow pop-ups to print or save as PDF.','error');return;}w.document.write('<html><head><title>TradeConnect document</title><style>body{font:14px Arial;max-width:800px;margin:45px auto;white-space:pre-wrap;line-height:1.6}</style></head><body>'+esc(content)+'</body></html>');w.document.close();w.focus();w.print();}
+ function saveDocumentImage(){const content=$('docPreview').value;if(!content.trim()){msg('There is no document to export.','error');return;}const lines=content.split('\n'),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d'),width=1000,pad=70,lineH=28;ctx.font='20px Arial';const wrapped=[];for(const line of lines){if(!line){wrapped.push('');continue;}let cur='';for(const word of line.split(/\s+/)){const test=cur?cur+' '+word:word;if(ctx.measureText(test).width>width-pad*2){wrapped.push(cur);cur=word;}else cur=test;}wrapped.push(cur);}canvas.width=width;canvas.height=Math.max(500,pad*2+wrapped.length*lineH);ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#172b43';ctx.font='20px Arial';wrapped.forEach((line,i)=>ctx.fillText(line,pad,pad+i*lineH));const a=document.createElement('a');a.download='TradeConnect-document.png';a.href=canvas.toDataURL('image/png');a.click();}
+ $('authForm').onsubmit=async e=>{
+  e.preventDefault();clearMsg();const btn=$('authSubmit'),mode=state.authMode;setBusy(btn,true,mode==='signup'?'Create account':'Sign in');
+  let result;
+  if(mode==='signup'){
+   const role=$('role').value;if(role==='customer'&&!selectedSignupInterests().length){setBusy(btn,false,'Create account');msg('Please select at least one skill you are interested in.','error');return;}
+   result=await db.auth.signUp({email:$('email').value.trim(),password:$('password').value,options:{data:{full_name:$('fullName').value.trim(),phone:$('phone').value.trim(),location:$('location').value.trim(),role,skill:role==='worker' ? $('skill').value : null,experience:role==='worker' ? $('experience').value.trim() : null,description:role==='worker' ? $('description').value.trim() : null,customer_interests:role==='customer'?selectedSignupInterests():[],referral_code:incomingReferral||null}}});
+  }else result=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+  setBusy(btn,false,mode==='signup'?'Create account':'Sign in');
+  if(result.error){msg(result.error.message,'error');return;}
+  if(mode==='signup'&&!result.data.session){msg('Registration received. Check your email to confirm your account, then sign in.','success');showAuth('login');return;}
+  state.user=result.data.user;await loadProfile();await loadWorkers();await loadReferralStats();msg(mode==='signup'?'Welcome to TradeConnect Zambia!':'You are signed in.','success');
+ };
+ $('customerJobForm').onsubmit=submitCustomerJob;
+ $('refreshCustomerJobs').onclick=loadCustomerJobs;$('customerJobSearchBtn').onclick=loadCustomerJobs;
+ $('vacancySearch').onclick=searchVacancies;$('cvUpload').onchange=async()=>{const f=$('cvUpload').files[0];if(!f)return;if(f.size>10*1024*1024){msg('CV file must be 10 MB or smaller.','error');$('cvUpload').value='';return;}const path=state.user.id+'/cv-'+crypto.randomUUID()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const up=await db.storage.from('tradeconnect-cvs').upload(path,f,{contentType:f.type||'application/octet-stream',upsert:false});if(up.error){msg('CV upload failed: '+up.error.message,'error');return;}msg('Your CV has been uploaded to your account.','success');};$('makeDocDraft').onclick=prepareDocumentDraft;$('generateWithAI').onclick=generateWithJuliusAI;$('saveDoc').onclick=saveDocument;$('downloadDoc').onclick=downloadText;$('printDoc').onclick=printDocument;$('imageDoc').onclick=saveDocumentImage;$('refreshDocs').onclick=loadSavedDocs;
+ $('profileAvatarFile').onchange=()=>{const f=$('profileAvatarFile').files[0];if(f)$('profileAvatarPreview').src=URL.createObjectURL(f);};$('saveInterests').onclick=saveCustomerInterests;
+ $('logout').onclick=async()=>{await db.auth.signOut();state.user=null;state.profile=null;updateHeader();msg('You have signed out.','success');};
+ $('searchBtn').onclick=loadWorkers;$('searchText').onkeydown=e=>{if(e.key==='Enter')loadWorkers();};
+ $('refreshBookings').onclick=loadBookings;$('refreshFeed').onclick=loadCommunityFeed;$('paymentForm').onsubmit=submitPayment;$('refreshPayments').onclick=loadMyPayments;$('adminPaymentsRefresh').onclick=loadAdminPayments;$('profileForm').onsubmit=saveProfile;$('postForm').onsubmit=publishPost;$('refreshPosts').onclick=loadMyPosts;$('adminRefresh').onclick=loadAdmin;$('adminLogsRefresh').onclick=loadSecurityLogs;
+ $('copyReferral').onclick=async()=>{const v=$('referralLink').value;try{await navigator.clipboard.writeText(v);msg('Invitation link copied.','success');}catch(e){$('referralLink').select();msg('Select and copy your invitation link.','notice');}};
+ $('shareReferral').onclick=async()=>{const data={title:'Join TradeConnect Zambia',text:'Find trusted skills and opportunities on TradeConnect Zambia.',url:$('referralLink').value};if(navigator.share){try{await navigator.share(data);}catch(e){}}else{$('referralLink').select();msg('Copy your invitation link and share it.','notice');}};
+ $('navTabs').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{if(b.classList.contains('hidden'))return;if(b.dataset.tab==='admin'&&!isOwner()){ $('admin').classList.add('owner-locked'); return; }document.querySelectorAll('.tabpane').forEach(p=>p.classList.add('hidden'));$(b.dataset.tab).classList.remove('hidden');$('navTabs').querySelectorAll('button').forEach(x=>x.className='secondary');b.className='';if(b.dataset.tab==='directory')loadWorkers();if(b.dataset.tab==='updates')loadCommunityFeed();if(b.dataset.tab==='mybookings')loadBookings();if(b.dataset.tab==='customerjobs'){ $('customerJobCreate').classList.toggle('hidden',state.profile?.role!=='customer');loadCustomerJobs();}if(b.dataset.tab==='jobboard')searchVacancies();if(b.dataset.tab==='juliusai'){if(state.profile){$('cvName').value=state.profile.full_name||'';$('cvPhone').value=state.profile.phone||'';$('cvEmail').value=state.user.email||'';$('cvLocation').value=state.profile.location||'';$('cvSkills').value=state.profile.skill||'';loadSavedDocs();}}if(b.dataset.tab==='profile'){if(state.profile?.role==='customer')renderProfileInterests();}if(b.dataset.tab==='subscription'){loadMyPayments();loadSubscriptionStatus();}if(b.dataset.tab==='workerposts'){loadMyPosts();}if(b.dataset.tab==='referrals'){loadReferralStats();}if(b.dataset.tab==='admin'&&isOwner()){loadAdmin();loadAdminPayments();loadSecurityLogs();}});
+ $('modalClose').onclick=hideModal;$('modal').onclick=e=>{if(e.target===$('modal'))hideModal();};
+ async function init(){
+  await loadCategories();
+  const recoveryHash=new URLSearchParams(window.location.hash.replace(/^#/,'')).get('type');
+  const recoveryQuery=new URLSearchParams(window.location.search).get('type');
+  if(recoveryHash==='recovery'||recoveryQuery==='recovery'){state.recoveryMode=true;updateHeader();}
+  db.auth.onAuthStateChange((event,session)=>{
+   state.user=session?.user||null;
+   if(event==='PASSWORD_RECOVERY'){
+    state.recoveryMode=true;$('authPanel').classList.add('hidden');$('appArea').classList.add('hidden');updateHeader();
+    $('recoveryPage').scrollIntoView({behavior:'smooth'});return;
+   }
+   if(state.recoveryMode)return;
+   if(event==='INITIAL_SESSION'){
+    const hash=new URLSearchParams(window.location.hash.replace(/^#/,'')).get('type');
+    if(hash==='recovery')return;
+   }
+   setTimeout(()=>{if(!state.recoveryMode)onAuth();},0);
+  });
+  const {data:{session}}=await db.auth.getSession();
+  if(session && !state.recoveryMode)await onAuth();
+ }
+ init();
+})();
+</script>
+</body>
+</html>
