@@ -34,7 +34,7 @@
      <div class="field"><label>Phone number</label><input id="phone" required maxlength="30" placeholder="+260..." autocomplete="tel"></div>
      <div class="field"><label>Town / District</label><input id="location" required maxlength="90" placeholder="e.g. Kalabo"></div>
     </div>
-    <div class="field"><label>Account type</label><select id="role"><option value="customer">Customer — I need a service</option><option value="worker">Skilled worker — I offer services</option></select></div>
+    <div class="field"><label>Account type</label><select id="role"><option value="customer">Customer — I need a service</option><option value="worker">Skilled worker — I offer services</option><option value="organization">Company / Government organisation — I publish vacancies</option></select></div>
     <div id="customerInterestFields" class="field">
      <label>Skills you are interested in (select one or more)</label>
      <p class="muted small">Your community feed will prioritise these skills. You can still search for every other skill.</p>
@@ -388,20 +388,20 @@
  async function loadAdminPayments(){
   if(!isOwner())return;
   const box=$('adminPayments');box.innerHTML='<div class="empty">Loading payment submissions…</div>';
-  const {data,error}=await db.from('payment_submissions').select('id,user_id,transaction_reference,proof_url,status,created_at,profiles!payment_submissions_user_id_fkey(full_name,phone,role)').order('created_at',{ascending:false}).limit(100);
+  const {data,error}=await db.from('payment_submissions').select('id,user_id,subscription_type,amount_zmw,transaction_reference,proof_url,status,created_at,profiles!payment_submissions_user_id_fkey(full_name,phone,role)').order('created_at',{ascending:false}).limit(100);
   if(error){box.innerHTML='<div class="notice error">'+esc(error.message)+'</div>';return;}
   if(!data?.length){box.innerHTML='<div class="empty">No payment proofs submitted yet.</div>';return;}
-  box.innerHTML=data.map(x=>`<article class="card"><span class="status ${x.status==='approved'?'accepted':x.status==='rejected'?'rejected':''}">${esc(x.status.toUpperCase())}</span><h3>${esc(x.profiles?.full_name||'Worker')}</h3><p>${esc(x.profiles?.phone||'')} · K10 / 62 days</p><p>Transaction: <strong>${esc(x.transaction_reference)}</strong></p><p class="small muted">${new Date(x.created_at).toLocaleString()}</p><button class="secondary" data-proof="${esc(x.id)}">View payment proof</button>${x.status==='pending'?`<div class="actions"><button data-approve="${esc(x.id)}">Approve & activate 62 days</button><button class="danger" data-reject="${esc(x.id)}">Reject</button></div>`:''}</article>`).join('');
+  box.innerHTML=data.map(x=>`<article class="card"><span class="status ${x.status==='approved'?'accepted':x.status==='rejected'?'rejected':''}">${esc(x.status.toUpperCase())}</span><h3>${esc(x.profiles?.full_name||'Worker')}</h3><p>${esc(x.profiles?.phone||'')} · ${x.subscription_type==='organization_month'?'K30 / month':'K10 / 62 days'}</p><p>Transaction: <strong>${esc(x.transaction_reference)}</strong></p><p class="small muted">${new Date(x.created_at).toLocaleString()}</p><button class="secondary" data-proof="${esc(x.id)}">View payment proof</button>${x.status==='pending'?`<div class="actions"><button data-approve="${esc(x.id)}">Approve subscription</button><button class="danger" data-reject="${esc(x.id)}">Reject</button></div>`:''}</article>`).join('');
   box.querySelectorAll('[data-proof]').forEach(async b=>{b.onclick=async()=>{const item=data.find(x=>x.id===b.dataset.proof);const {data:signed,error}=await db.storage.from('tradeconnect-payment-proofs').createSignedUrl(item.proof_url,300);if(error){msg('Could not open proof: '+error.message,'error');return;}window.open(signed.signedUrl,'_blank','noopener');};});
   box.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>reviewPayment(b.dataset.approve,'approved'));
   box.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>reviewPayment(b.dataset.reject,'rejected'));
  }
  async function reviewPayment(id,status){
   const note=status==='rejected'?(prompt('Optional reason for rejection:')||'Payment not verified.'):'Payment verified by administrator.';
-  if(!confirm(status==='approved'?'Approve this payment and activate 62 days of worker access?':'Reject this payment submission?'))return;
+  if(!confirm(status==='approved'?'Approve this payment and activate the submitted subscription?':'Reject this payment submission?'))return;
   const {error}=await db.from('payment_submissions').update({status,admin_note:note,reviewed_by:state.user.id,reviewed_at:new Date().toISOString()}).eq('id',id).eq('status','pending');
   if(error){msg('Could not update payment: '+error.message,'error');return;}
-  await loadAdminPayments();msg(status==='approved'?'Payment approved. The worker now has 62 days of posting access.':'Payment submission rejected.','success');
+  await loadAdminPayments();msg(status==='approved'?'Payment approved. The relevant subscription has been activated.':'Payment submission rejected.','success');
  }
  async function loadMyPosts(){
   if(!state.user)return;
@@ -604,7 +604,7 @@
   let result;
   if(mode==='signup'){
    const role=$('role').value;if(role==='customer'&&!selectedSignupInterests().length){setBusy(btn,false,'Create account');msg('Please select at least one skill you are interested in.','error');return;}
-   result=await db.auth.signUp({email:$('email').value.trim(),password:$('password').value,options:{data:{full_name:$('fullName').value.trim(),phone:$('phone').value.trim(),location:$('location').value.trim(),role,skill:role==='worker' ? $('skill').value : null,experience:role==='worker' ? $('experience').value.trim() : null,description:role==='worker' ? $('description').value.trim() : null,customer_interests:role==='customer'?selectedSignupInterests():[],referral_code:incomingReferral||null}}});
+   result=await db.auth.signUp({email:$('email').value.trim(),password:$('password').value,options:{data:{full_name:$('fullName').value.trim(),phone:$('phone').value.trim(),location:$('location').value.trim(),role,skill:role==='worker' ? $('skill').value : null,experience:role==='worker' ? $('experience').value.trim() : null,description:role==='worker' ? $('description').value.trim() : null,customer_interests:role==='customer'?selectedSignupInterests():[],referral_code:incomingReferral||null,skills:role==='worker'?[...document.querySelectorAll('input[name=\"tcSignupSkill\"]:checked')].map(x=>x.value):[],organization_name:role==='organization'?($('tcOrgName')?.value.trim()||$('fullName').value.trim()):null,organization_type:role==='organization'?($('tcOrgType')?.value||'Company'):null,organization_website:role==='organization'?($('tcOrgWebsite')?.value.trim()||null):null,organization_description:role==='organization'?($('tcOrgDescription')?.value.trim()||''):null}}});
   }else result=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
   setBusy(btn,false,mode==='signup'?'Create account':'Sign in');
   if(result.error){msg(result.error.message,'error');return;}
@@ -646,5 +646,6 @@
  init();
 })();
 </script>
+<script src="./tradeconnect-social-upgrade.js"></script>
 </body>
 </html>
